@@ -6,6 +6,7 @@ import { db, auth } from "./firebase";
 import { Button, Avatar, makeStyles, Modal, Input } from "@material-ui/core";
 import FlipMove from "react-flip-move";
 import InstagramEmbed from "react-instagram-embed";
+import axios from './axios';
 
 function getModalStyle() {
   const top = 50;
@@ -67,12 +68,23 @@ function App() {
   }, [user, username]);
 
   useEffect(() => {
-    db.collection("posts")
-      .orderBy("timestamp", "desc")
-      .onSnapshot((snapshot) =>
-        setPosts(snapshot.docs.map((doc) => ({ id: doc.id, post: doc.data() })))
-      );
+    const fetchPosts = async () =>
+      axios.get('/sync').then(response => {
+        console.log(response);
+        setPosts(response.data)
+      });
+
+    fetchPosts();
   }, []);
+
+  /*
+  
+  @param {    db.collection("posts")
+        .orderBy("timestamp", "desc")
+        .onSnapshot((snapshot) =>
+          setPosts(snapshot.docs.map((doc) => ({ id: doc.id, post: doc.data() })))
+        );} e 
+   */
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -180,14 +192,14 @@ function App() {
       <div className="app__posts">
         <div className="app__postsLeft">
           <FlipMove>
-            {posts.map(({ id, post }) => (
+            {posts.map((post) => (
               <Post
                 user={user}
-                key={id}
-                postId={id}
-                username={post.username}
+                key={post._id}
+                postId={post._id}
+                username={post.user}
                 caption={post.caption}
-                imageUrl={post.imageUrl}
+                imageUrl={post.image}
               />
             ))}
           </FlipMove>
@@ -200,10 +212,10 @@ function App() {
             containerTagName="div"
             protocol=""
             injectScript
-            onLoading={() => {}}
-            onSuccess={() => {}}
-            onAfterRender={() => {}}
-            onFailure={() => {}}
+            onLoading={() => { }}
+            onSuccess={() => { }}
+            onAfterRender={() => { }}
+            onFailure={() => { }}
           />
         </div>
       </div>
