@@ -7,6 +7,7 @@ import { Button, Avatar, makeStyles, Modal, Input } from "@material-ui/core";
 import FlipMove from "react-flip-move";
 import InstagramEmbed from "react-instagram-embed";
 import axios from './axios';
+import Pusher from 'pusher-js';
 
 function getModalStyle() {
   const top = 50;
@@ -67,13 +68,24 @@ function App() {
     };
   }, [user, username]);
 
-  useEffect(() => {
-    const fetchPosts = async () =>
-      axios.get('/sync').then(response => {
-        console.log(response);
-        setPosts(response.data)
-      });
+  const fetchPosts = async () =>
+  axios.get('/sync').then(response => {
+    console.log(response);
+    setPosts(response.data)
+  });
 
+  useEffect(() => {
+    const pusher = new Pusher('fa14fc9271ab4c159777', {
+      cluster: 'us2'
+    });
+
+    const channel = pusher.subscribe('posts');
+    channel.bind('inserted', (data) => {
+      fetchPosts();
+    });
+  }, [])
+
+  useEffect(() => {
     fetchPosts();
   }, []);
 
